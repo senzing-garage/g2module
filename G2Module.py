@@ -213,17 +213,20 @@ class G2Module(object):
         """
         g2ExportFlags = 0
         if max_match_level == 1:
-            # Include match-level 1
+            # Include "resolved" relationships
             g2ExportFlags = 4
         elif max_match_level == 2:
-            # Include match-level 1,2
+            # Include "possibly same" relationships
             g2ExportFlags = 12
         elif max_match_level == 3:
-            # Include match-level 1,2,3
+            # Include "possibly related" relationships
             g2ExportFlags = 28
         elif max_match_level == 4:
-            # Include match-level 1,2,3,4
+            # Include "name only" relationships
             g2ExportFlags = 60
+        elif max_match_level == 5:
+            # Include "disclosed" relationships
+            g2ExportFlags = 125
         else:
             g2ExportFlags = 0
         return g2ExportFlags
@@ -242,10 +245,11 @@ class G2Module(object):
             exportType: CSV or JSON
             max_match_level: The match-level to specify what kind of entity resolves
                          and relations we want to see.
-                             1 -- same entities
-                             2 -- possibly same entities
-                             3 -- possibly related entities
-                             4 -- disclosed relationships
+                             1 -- "resolved" relationships
+                             2 -- "possibly same" relationships
+                             3 -- "possibly related" relationships
+                             4 -- "name only" relationships
+                             5 -- "disclosed" relationships
         Return:
             c_void_p: handle for the export
         """
@@ -314,10 +318,11 @@ class G2Module(object):
         Args:
             max_match_level: The match-level to specify what kind of entity resolves
                          and relations we want to see.
-                             1 -- same entities
-                             2 -- possibly same entities
-                             3 -- possibly related entities
-                             4 -- disclosed relationships
+                             1 -- "resolved" relationships
+                             2 -- "possibly same" relationships
+                             3 -- "possibly related" relationships
+                             4 -- "name only" relationships
+                             5 -- "disclosed" relationships
             g2ExportFlags: A bit mask specifying other control flags, such as
                            "G2_EXPORT_INCLUDE_SINGLETONS".  The default and recommended
                            value is "G2_EXPORT_DEFAULT_REPORT_FLAGS".
@@ -355,10 +360,11 @@ class G2Module(object):
         Args:
             max_match_level: The match-level to specify what kind of entity resolves
                          and relations we want to see.
-                             1 -- same entities
-                             2 -- possibly same entities
-                             3 -- possibly related entities
-                             4 -- disclosed relationships
+                             1 -- "resolved" relationships
+                             2 -- "possibly same" relationships
+                             3 -- "possibly related" relationships
+                             4 -- "name only" relationships
+                             5 -- "disclosed" relationships
             g2ExportFlags: A bit mask specifying other control flags, such as
                            "G2_EXPORT_INCLUDE_SINGLETONS".  The default and recommended
                            value is "G2_EXPORT_DEFAULT_REPORT_FLAGS".
@@ -637,37 +643,51 @@ class G2Module(object):
             raise G2ModuleGenericException("ERROR_CODE: " + str(ret_code))
         return json.loads(responseBuf.value.decode('utf-8'))
 
-    def license(self):
+    def getActiveConfigID(self):
         # type: () -> object
-        """ Retrieve the G2 engine license details
+        """ Retrieve the active config ID for the G2 engine
 
         Args:
 
         Return:
-            object: JSON document with G2 engine license details
+            object: The numeric active config ID
         """
 
-        self._lib_handle.G2_license.restype = c_char_p
-        ret = self._lib_handle.G2_license()
-        return json.loads(ret.decode('utf-8'))
+        configID = c_longlong(0)
+        self._lib_handle.G2_getActiveConfigID.argtypes = [POINTER(c_longlong)]
+        ret_code = self._lib_handle.G2_getActiveConfigID(configID)
+        if ret_code == -2:
+            self._lib_handle.G2_getLastException(tls_var.buf, sizeof(tls_var.buf))
+            self._lib_handle.G2_clearLastException()
+            raise TranslateG2ModuleException(tls_var.buf.value)
+        elif ret_code < 0:
+            raise G2ModuleGenericException("ERROR_CODE: " + str(ret_code))
+        return configID.value
 
-    def version(self):
+    def getRepositoryLastModifiedTime(self):
         # type: () -> object
-        """ Retrieve the G2 engine version details
+        """ Retrieve the last modified time stamp of the entity store repository
 
         Args:
 
         Return:
-            object: JSON document with G2 engine version details
+            object: The last modified time stamp, as a numeric integer
         """
 
-        self._lib_handle.G2_version.restype = c_char_p
-        ret = self._lib_handle.G2_version()
-        return json.loads(ret.decode('utf-8'))
+        lastModifiedTimeStamp = c_longlong(0)
+        self._lib_handle.G2_getRepositoryLastModifiedTime.argtypes = [POINTER(c_longlong)]
+        ret_code = self._lib_handle.G2_getRepositoryLastModifiedTime(lastModifiedTimeStamp)
+        if ret_code == -2:
+            self._lib_handle.G2_getLastException(tls_var.buf, sizeof(tls_var.buf))
+            self._lib_handle.G2_clearLastException()
+            raise TranslateG2ModuleException(tls_var.buf.value)
+        elif ret_code < 0:
+            raise G2ModuleGenericException("ERROR_CODE: " + str(ret_code))
+        return lastModifiedTimeStamp.value
 
     def purgeRepository(self, reset_resolver_=True):
         # type: (bool) -> None
-        """ Retrieve the G2 engine version details
+        """ Purges the G2 repository
 
         Args:
             reset_resolver: Re-initializes the engine.  Should be left True.

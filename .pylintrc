@@ -23,6 +23,7 @@ disable=
     trailing-newlines,
     trailing-whitespace,
     unidiomatic-typecheck,
+    unknown-option-value,
     unused-argument,
     unused-import,
     unused-variable,

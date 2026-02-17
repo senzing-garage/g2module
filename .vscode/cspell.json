@@ -2,25 +2,25 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "analysing",
+    "bitmask",
     "CCLA",
     "CODEOWNER",
     "CONFIGFILE",
-    "Dsrcs",
-    "ICLA",
-    "SUPPORTPATH",
-    "Senzing",
-    "Uninitializes",
-    "analysing",
-    "bitmask",
+    "cooldown",
     "dsrc",
+    "Dsrcs",
     "esbenp",
+    "ICLA",
+    "kernelsam",
     "pylint",
     "schemaname",
+    "Senzing",
     "shellcheck",
     "sqldb",
-    "stackoverflow"
+    "stackoverflow",
+    "SUPPORTPATH",
+    "Uninitializes"
   ],
-  "ignorePaths": [
-    ".git/**"
-  ]
+  "ignorePaths": [".git/**"]
 }
